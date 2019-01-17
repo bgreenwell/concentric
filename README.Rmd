@@ -1,0 +1,106 @@
+---
+output: github_document
+---
+
+<!-- README.md is generated from README.Rmd. Please edit that file -->
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  cache = TRUE,
+  collapse = TRUE,
+  comment = "#>"
+)
+
+# Required packages
+library(ggplot2)
+
+# Function to generate three concentric circles over a grid of points
+genCircles <- function(n = 500L, radii = c(1, 2, 5)) {
+  angles <- seq(from = 0, to = 2 * pi, length = n)
+  names(radii) <- 1:3
+  plyr::ldply(radii, .fun = function(r) {
+    data.frame(x = r * cos(angles),
+               y = r * sin(angles))
+  }, .id = "circle")
+}
+
+circles <- genCircles()
+circle1 <- circles[circles$circle == 1, ]
+circle2 <- circles[circles$circle == 2, ]
+circle3 <- circles[circles$circle == 3, ]
+
+# Function to simulate data frame of random triangles
+simTri <- function(n = 1L, radii = c(1, 2, 3)) {
+  plyr::rdply(n, {
+    angles <- runif(3, min = 0, max = 2 * pi)
+    data.frame(x = radii * cos(angles),
+               y = radii * sin(angles))
+  }, .id = "triangle")
+}
+
+# Function to determine if a triangle is obtuse
+isObtuse <- function(triangle) {
+  
+  x <- triangle$x
+  y <- triangle$y
+  
+  # Lengths
+  aa <- sqrt((x[1]-x[2])^2 + (y[1]-y[2])^2)
+  bb <- sqrt((x[1]-x[3])^2 + (y[1]-y[3])^2)
+  cc <- sqrt((x[2]-x[3])^2 + (y[2]-y[3])^2)
+  
+  # Test if each triangle is obtuse
+  if (aa^2 + bb^2 < cc^2 | aa^2 + cc^2 < bb^2 | bb^2 + cc^2 < aa^2) {
+    TRUE
+  } else {
+    FALSE
+  }
+}
+```
+
+# concentric
+
+What is the probability that a _random triangle_ is obtuse? The answer, depends on how you define a random trinagle. In the most general case, the answer is $1/4$. To obtain this answer, one can use the fact that, for any triangle $T$, there exists some circle $C$ such that the vertices of $T$ all lie on its circumference. Hence, the problem is equivalent to finding the probability that the points randomly distirbuted on the circumference of a circle form an obtuse triangle.
+
+A more challenging problem, inspired by the question above, is the following. Concider three concenctric circles $C_1$, $C_2$, and $C_3$ with radii $r_1$, $r_2$, and $r_3$, respectively, and that $r_1 < r_2 < r3$. What is the probability that three randomly selected points, one on each circle, forms an obtuse triagle? In other words, what is the probability that a random triangle is obtuse if each vertex must lie on the circumference of a different concentric circle? Some simulated examples (with $r_1 = 1$, $r_2 = 2$, and $r_3 = 5$) are illustrated in the figure below.
+
+```{r examples, echo=FALSE, fig.width=6, fig.asp=1, out.width="70%", fig.align="center"}
+# Simulate some random triangles
+set.seed(101) 
+triangles <- simTri(n = 16, radii = c(1, 2, 5))
+
+# Plot random triangles
+ggplot(triangles, aes(x = x, y = y, fill = as.factor(triangle))) + 
+  geom_polygon() + 
+  theme_light() +
+  facet_wrap( ~ triangle, nrow = 4) +
+  annotate("path", x = circle1$x, y = circle1$y) +
+  annotate("path", x = circle2$x, y = circle2$y) +
+  annotate("path", x = circle3$x, y = circle3$y) +
+  geom_hline(aes(yintercept = 0), alpha = 0.25) +
+  geom_vline(aes(xintercept = 0), alpha = 0.25) +
+  theme(legend.position = "none",
+        strip.background = element_blank(), 
+        strip.text = element_blank()) +
+  xlab("") +
+  ylab("")
+```
+
+```{r proportion}
+# Simulate some random triangles
+set.seed(101) 
+triangles <- simTri(n = 1000L, radii = c(1, 1, 5))
+
+# What proportion are obtuse?
+mean(plyr::daply(triangles, .variables = "triangle", isObtuse))
+(4*5 - 1) / (4 * 5)
+```
+
+```{r proportion-plot}
+props <- sapply(1:10, FUN = function(x) {
+  triangles <- simTri(n = 1000, radii = c(1, 1, x))
+  mean(plyr::daply(triangles, .variables = "triangle", isObtuse))
+})
+plot(1:10, props, type = "b", pch = 19,
+     xlab = expression(r[3]), ylab = "Probability")
+```

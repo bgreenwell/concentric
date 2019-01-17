@@ -1,0 +1,6 @@
+"0","props <- sapply(1:10, FUN = function(x) {"
+"0","  triangles <- simTri(n = 10000L, radii = c(1, 1, x))"
+"0","  mean(plyr::daply(triangles, .variables = ""triangle"", isObtuse))"
+"0","})"
+"0","plot(1:10, props, type = ""b"", pch = 19,"
+"0","     xlab = expression(r[3]), ylab = ""Probability"")"

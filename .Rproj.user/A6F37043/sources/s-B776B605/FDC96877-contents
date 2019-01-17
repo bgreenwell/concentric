@@ -1,0 +1,9 @@
+---
+title: "Random Triangles on Concentric Circles"
+author: "Brandon M. Greenwell"
+date: "04/03/2015"
+output: html_document
+---
+
+## Introduction
+What is the probability that a random triangle is obtuse? The answer, depends on how you define a random trinagle. In the most general case, the answer is $1/4$. To obtain this answer, one can use the fact that, for any triangle $T$, there exists some circle $C$ such that the vertices of $T$ all lie on its circumference. Hence, the problem is equivalent to finding the probability that the points randomly distirbuted on the circumference of a circle form an obtuse triangle.
